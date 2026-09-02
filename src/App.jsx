@@ -25,9 +25,9 @@ export default function App() {
     <AuthProvider>
       <CartProvider>
         <BrowserRouter>
-          <div className="flex flex-col min-h-screen bg-[#070709] text-white">
+          <div className="flex flex-col min-h-screen bg-[#F2EFE7] text-[#112D4E]">
             <Routes>
-              {/* Admin Routes with distinct AdminLayout */}
+              {/* Admin Routes */}
               <Route
                 path="/admin"
                 element={
@@ -40,7 +40,7 @@ export default function App() {
                 <Route path="dashboard" element={<Dashboard />} />
               </Route>
 
-              {/* Public Storefront Routes with Navbar & Footer */}
+              {/* Public Storefront Routes */}
               <Route
                 path="*"
                 element={
@@ -67,4 +67,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-
