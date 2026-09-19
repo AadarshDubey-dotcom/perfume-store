@@ -3,7 +3,7 @@ import ProductCard from '../components/ProductCard';
 import { productService } from '../services/productService';
 import { Search, SlidersHorizontal, Sparkles } from 'lucide-react';
 
-const CATEGORIES = ['All', 'Extrait de Parfum', 'Eau de Parfum', 'Parfum', 'Eau de Toilette'];
+const CATEGORIES = ['All', 'Apex', 'Intense', 'Tempt', 'Auren'];
 
 export default function Shop() {
   const [products, setProducts] = useState([]);
@@ -32,13 +32,13 @@ export default function Shop() {
         <div className="text-center max-w-2xl mx-auto mb-12">
           <span className="text-xs uppercase tracking-[0.25em] text-[#3F72AF] font-bold flex items-center justify-center gap-2">
             <Sparkles className="w-3.5 h-3.5 text-[#3F72AF]" />
-            Haute Parfumerie Vault
+             Luxury perfume house Vault
           </span>
           <h1 className="font-serif text-4xl sm:text-5xl font-bold text-[#112D4E] mt-3 mb-4">
             The Complete Collection
           </h1>
           <p className="text-[#112D4E]/80 text-sm font-normal">
-            Browse our artisanal lineup of extraits, rare absolutes, and seasonal compositions.
+            Explore our handcrafted perfumes made with strong extraits, rare natural absolutes, and seasonal blends.
           </p>
         </div>
 
@@ -63,7 +63,7 @@ export default function Shop() {
               <select
                 value={ordering}
                 onChange={(e) => setOrdering(e.target.value)}
-                className="bg-[#F2EFE7] border border-[#DBE2EF] rounded-xl px-4 py-2.5 text-xs text-[#112D4E] font-medium focus:outline-none focus:border-[#3F72AF]"
+                className="bg-[#f4f2ec] border border-[#DBE2EF] rounded-xl px-4 py-2.5 text-xs text-[#112D4E] font-medium focus:outline-none focus:border-[#3F72AF]"
               >
                 <option value="featured">Featured First</option>
                 <option value="price_asc">Price: Low to High</option>
@@ -95,7 +95,7 @@ export default function Shop() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-96 rounded-2xl bg-white/60 animate-pulse border border-[#DBE2EF]" />
+              <div key={i} className="h-96 rounded-2xl bg-white animate-pulse border border-[#f4f7fc]" />
             ))}
           </div>
         ) : products.length === 0 ? (

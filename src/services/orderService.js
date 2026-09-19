@@ -2,7 +2,9 @@ import { collection, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import emailjs from '@emailjs/browser';
 import { db } from './firebase';
 
-export async function createOrder({ name, address, phone, city, postalCode, paymentMethod, items, product, quantity, user, shipping, total }) {
+export async function createCodOrder({ name, address, phone, city, postalCode, paymentMethod = 'Cash on Delivery', items, product, quantity, user, shipping, total }) {
+  const isCod = paymentMethod === 'Cash on Delivery';
+  const storedPaymentMethod = isCod ? 'Cash on Delivery' : 'Razorpay Payment Link';
   const orderReference = doc(collection(db, 'orders'));
   const order = {
     orderId: orderReference.id,
@@ -11,7 +13,7 @@ export async function createOrder({ name, address, phone, city, postalCode, paym
     phone,
     city,
     postalCode,
-    paymentMethod,
+    paymentMethod: storedPaymentMethod,
     items,
     product,
     quantity: Number(quantity),
@@ -19,7 +21,7 @@ export async function createOrder({ name, address, phone, city, postalCode, paym
     total,
     userId: user.uid,
     userEmail: user.email,
-    status: 'Pending',
+    status: isCod ? 'Pending Payment (COD)' : 'Payment Pending (Razorpay)',
     createdAt: serverTimestamp(),
   };
 
@@ -40,6 +42,9 @@ export async function createOrder({ name, address, phone, city, postalCode, paym
         {
           to_email: 'harshpandat014@gmail.com',
           order_id: order.orderId,
+          amount: `INR ${Number(order.total || 0).toFixed(2)}`,
+          payment_method: order.paymentMethod,
+          order_status: order.status,
           customer_name: order.name,
           delivery_address: order.address,
           mobile_number: order.phone,
@@ -51,11 +56,13 @@ export async function createOrder({ name, address, phone, city, postalCode, paym
       );
       emailSent = true;
     } catch (error) {
-      console.error('Order saved, but email notification failed:', error);
+      console.error('Order saved, but EmailJS notification failed:', error);
     }
-  } else {
-    console.warn('Order saved, but EmailJS is not configured. Add the VITE_EMAILJS_* variables to enable notifications.');
   }
 
   return { id: orderReference.id, emailSent };
+}
+
+export async function createOrder(orderData) {
+  return createCodOrder(orderData);
 }

@@ -77,7 +77,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-[#DBE2EF]/10 pt-8 flex flex-col sm:flex-row justify-between items-center text-xs font-light text-[black]/80 gap-4">
-          <p>© {new Date().getFullYear()} MASCULITY Haute Parfumerie. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} MASCULITY luxury perfume house. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-[#F9F7F7] transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-[#F9F7F7] transition-colors">Terms of Service</a>

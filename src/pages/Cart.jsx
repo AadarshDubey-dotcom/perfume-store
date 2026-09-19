@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { createOrder } from '../services/orderService';
+import { createCodOrder } from '../services/orderService';
 import { Trash2, ArrowRight, ShoppingBag, ShieldCheck, Check, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -19,7 +19,7 @@ export default function Cart() {
   const [emailSent, setEmailSent] = useState(false);
   const [orderId, setOrderId] = useState('');
   const [orderError, setOrderError] = useState('');
-  const [paymentId, setPaymentId] = useState('');
+  const [paymentInitiated, setPaymentInitiated] = useState(false);
   const [orderDetails, setOrderDetails] = useState({
     name: user?.displayName || user?.name || '',
     email: user?.email || '',
@@ -27,7 +27,7 @@ export default function Cart() {
     address: '',
     city: '',
     postalCode: '',
-    paymentMethod: 'Cash on delivery',
+    paymentMethod: 'Cash on Delivery',
   });
 
   const applyPromo = (e) => {
@@ -45,11 +45,14 @@ export default function Cart() {
   const updateOrderDetails = (event) => {
     const { name, value } = event.target;
     setOrderDetails((current) => ({ ...current, [name]: value }));
+    if (name === 'paymentMethod') {
+      setPaymentInitiated(false);
+    }
   };
 
   const handlePayment = () => {
     window.open('https://razorpay.me/@mayankpatankar', '_blank', 'noopener,noreferrer');
-    setOrderDetails((current) => ({ ...current, paymentMethod: 'Razorpay payment link' }));
+    setPaymentInitiated(true);
   };
 
   const placeOrder = async (event) => {
@@ -58,8 +61,16 @@ export default function Cart() {
     setOrderError('');
 
     try {
-      const result = await createOrder({
-        ...orderDetails,
+      if (orderDetails.paymentMethod === 'Online Payment (Razorpay)' && !paymentInitiated) {
+        throw new Error('Please complete the Razorpay payment first, then place your order.');
+      }
+
+      const orderData = {
+        name: orderDetails.name,
+        address: orderDetails.address,
+        phone: orderDetails.phone,
+        city: orderDetails.city,
+        postalCode: orderDetails.postalCode,
         items: cart.map((item) => ({
           productId: item.product.id,
           name: item.product.name,
@@ -71,7 +82,10 @@ export default function Cart() {
         quantity: cart.reduce((count, item) => count + item.quantity, 0),
         shipping,
         total: finalTotal,
-        paymentId,
+      };
+      const result = await createCodOrder({
+        ...orderData,
+        paymentMethod: orderDetails.paymentMethod,
         user,
       });
       setOrderId(result.id);
@@ -99,7 +113,7 @@ export default function Cart() {
           </div>
           <h2 className="font-serif text-3xl font-bold mb-3 text-[#112D4E]">Command Confirmed</h2>
           <p className="text-[#112D4E]/80 text-sm mb-6 leading-relaxed">
-            Merci! Your bespoke order has been registered in our Grasse atelier.
+            Thank you! Your custom perfume order has been recorded in our workshop in Indore, India.
           </p>
           <p className={`mb-6 rounded-xl border p-3 text-xs font-semibold ${emailSent ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-700'}`}>
             {emailSent ? 'Order details were sent to harshpandat014@gmail.com.' : 'Order saved successfully. Email notification is not configured yet.'}
@@ -119,7 +133,7 @@ export default function Cart() {
             </div>
             <div className="flex justify-between gap-4 border-t border-[#DBE2EF] pt-2 font-bold text-[#112D4E]">
               <span>Order total</span>
-              <span>${finalTotal.toFixed(2)}</span>
+              <span>₹{finalTotal.toFixed(2)}</span>
             </div>
           </div>
           <Link
@@ -203,7 +217,7 @@ export default function Cart() {
                     Size: {item.size} • {item.product.category}
                   </p>
                   <p className="text-sm font-serif font-bold text-[#112D4E]">
-                    ${item.product.price}
+                    ₹{item.product.price}
                   </p>
                 </div>
 
@@ -247,21 +261,21 @@ export default function Cart() {
               <div className="space-y-2.5 text-xs text-[#112D4E]/80 font-medium">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="font-bold text-[#112D4E]">${subtotal.toFixed(2)}</span>
+                  <span className="font-bold text-[#112D4E]">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>White Glove Shipping</span>
-                  <span>{shipping === 0 ? <span className="text-[#3F72AF] font-bold uppercase">Free</span> : `$${shipping}`}</span>
+                  <span>₹{shipping === 0 ? <span className="text-[#3F72AF] font-bold uppercase">Free</span> : `₹${shipping}`}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-emerald-600 font-bold">
                     <span>Privilege Promo (20%)</span>
-                    <span>-${discount.toFixed(2)}</span>
+                    <span>-₹{discount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="border-t border-[#DBE2EF] pt-3 flex justify-between text-base font-serif font-bold text-[#112D4E]">
                   <span>Total Due</span>
-                  <span>${finalTotal.toFixed(2)}</span>
+                  <span>₹{finalTotal.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -403,8 +417,8 @@ export default function Cart() {
                     onChange={updateOrderDetails}
                     className="w-full rounded-xl border border-[#DBE2EF] bg-[#F2EFE7] px-3 py-3 text-sm text-[#112D4E] outline-none focus:border-[#3F72AF]"
                   >
-                    <option>Cash on delivery</option>
-                    <option>Card on delivery</option>
+                    <option>Cash on Delivery</option>
+                    <option>Online Payment (Razorpay)</option>
                   </select>
                 </label>
               </div>
@@ -424,15 +438,17 @@ export default function Cart() {
                   Back to bag
                 </button>
                 <button type="submit" disabled={submitting} className="btn-royal rounded-full px-6 py-3 text-xs uppercase tracking-wider disabled:cursor-not-allowed disabled:opacity-60">
-                  {submitting ? 'Saving Order...' : `Place Order · $${finalTotal.toFixed(2)}`}
+                  {submitting ? 'Saving Order...' : orderDetails.paymentMethod === 'Online Payment (Razorpay)' ? 'Place Order After Payment' : `Place COD Order · ₹${finalTotal.toFixed(2)}`}
                 </button>
-                <button
-                  type="button"
-                  onClick={handlePayment}
-                  className="rounded-full bg-[#3399cc] px-6 py-3 text-xs uppercase tracking-wider text-white transition-colors hover:bg-[#287fa8]"
-                >
-                  {paymentId ? 'Pay Again' : 'Pay Now'}
-                </button>
+                {orderDetails.paymentMethod === 'Online Payment (Razorpay)' && (
+                  <button
+                    type="button"
+                    onClick={handlePayment}
+                    className="rounded-full bg-[#3399cc] px-6 py-3 text-xs uppercase tracking-wider text-white transition-colors hover:bg-[#287fa8]"
+                  >
+                    {paymentInitiated ? 'Pay Again' : `Pay Now · ₹${finalTotal.toFixed(2)}`}
+                  </button>
+                )}
               </div>
             </form>
           </motion.div>

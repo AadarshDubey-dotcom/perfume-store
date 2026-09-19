@@ -85,7 +85,7 @@ export default function ProductCard({ product }) {
             onClick={() => addToCart(product, 1)}
             className="btn-royal text-[11px] uppercase tracking-widest px-3.5 py-1.5 rounded-full shadow-sm  border-white/40 text-white hover:bg-white/10 transition-colors"
           >
-            + Add to Bag
+            + Add to Bag 
           </button>
         </div>
       </div>

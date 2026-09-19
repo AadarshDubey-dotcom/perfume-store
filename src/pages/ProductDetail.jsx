@@ -127,7 +127,7 @@ export default function ProductDetail() {
             {/* Size / Flacon Volume Selection */}
             <div>
               <label className="text-xs uppercase tracking-widest text-[#112D4E] font-bold block mb-3">
-                Select Flacon Volume
+                Choose your perfume bottle size.
               </label>
               <div className="flex gap-3">
                 {['50ml', '100ml', '200ml Flacon'].map((size) => (
@@ -137,7 +137,7 @@ export default function ProductDetail() {
                     className={`px-5 py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all duration-300 ${
                       selectedSize === size
                         ? 'btn-royal shadow-md scale-105'
-                        : 'glass-panel text-[#112D4E] hover:border-[#3F72AF]'
+                        : 'glass-panel text-[#9d9d9e] hover:border-[#3F72AF]'
                     }`}
                   >
                     {size}
