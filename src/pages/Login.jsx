@@ -104,10 +104,10 @@ export default function Login() {
       >
         <div className="text-center mb-8">
           <div className="w-10 h-10 rounded-full border border-[#3F72AF] flex items-center justify-center mx-auto mb-4 bg-[#F2EFE7]">
-            <Sparkles className="w-5 h-5 text-[#3F72AF]" />
+            <img src="Masculity1.jpg" alt="Logo" className="w-6 h-6" />
           </div>
-          <h1 className="font-serif text-3xl font-bold mb-1 text-[#112D4E]">Maison ÉLIXIR</h1>
-          <p className="text-xs text-[#112D4E]/70 font-medium">Sign in to your private collector account</p>
+          <h1 className="font-serif text-3xl font-bold mb-1 text-[#112D4E]">Masculinity</h1>
+          <p className="text-xs text-[#112D4E]/70 font-medium">Enter your perfume worldS</p>
         </div>
 
         {error && (
