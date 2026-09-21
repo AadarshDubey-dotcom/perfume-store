@@ -176,7 +176,7 @@ export default function ProductDetail() {
                   </>
                 ) : (
                   <>
-                    <ShoppingBag className="w-4 h-4" /> Add to Bag • ${(product.price * quantity).toFixed(2)}
+                    <ShoppingBag className="w-4 h-4" /> Add to Bag • ₹{(product.price * quantity).toFixed(2)}
                   </>
                 )}
               </button>
