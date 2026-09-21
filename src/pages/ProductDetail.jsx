@@ -130,7 +130,7 @@ export default function ProductDetail() {
                 Choose your perfume bottle size.
               </label>
               <div className="flex gap-3">
-                {['50ml', '100ml', '200ml Flacon'].map((size) => (
+                {['50ml'].map((size) => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
