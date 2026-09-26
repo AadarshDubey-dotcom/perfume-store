@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { httpsCallable } from 'firebase/functions';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { createCodOrder } from '../services/orderService';
+import { functions } from '../services/firebase';
 import { Trash2, ArrowRight, ShoppingBag, ShieldCheck, Check, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -20,6 +22,7 @@ export default function Cart() {
   const [orderId, setOrderId] = useState('');
   const [orderError, setOrderError] = useState('');
   const [paymentInitiated, setPaymentInitiated] = useState(false);
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [orderDetails, setOrderDetails] = useState({
     name: user?.displayName || user?.name || '',
     email: user?.email || '',
@@ -50,9 +53,117 @@ export default function Cart() {
     }
   };
 
-  const handlePayment = () => {
-    window.open('https://razorpay.me/@mayankpatankar', '_blank', 'noopener,noreferrer');
-    setPaymentInitiated(true);
+  const handlePayment = async () => {
+    if (!orderDetails.name || !orderDetails.address || !orderDetails.phone || !orderDetails.city || !orderDetails.postalCode) {
+      setOrderError('Please complete your delivery details before paying.');
+      return;
+    }
+
+    const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID;
+    if (!keyId) {
+      setOrderError('Razorpay key is not configured. Add VITE_RAZORPAY_KEY_ID and restart the app.');
+      return;
+    }
+
+    if (!window.Razorpay) {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => handlePayment();
+      document.body.appendChild(script);
+      return;
+    }
+
+    try {
+      setPaymentProcessing(true);
+      setOrderError('');
+
+      const createRazorpayOrder = httpsCallable(functions, 'createRazorpayOrder');
+      const orderData = {
+        name: orderDetails.name,
+        address: orderDetails.address,
+        phone: orderDetails.phone,
+        city: orderDetails.city,
+        postalCode: orderDetails.postalCode,
+        email: orderDetails.email || user?.email || '',
+        items: cart.map((item) => ({
+          productId: item.product.id,
+          name: item.product.name,
+          size: item.size,
+          quantity: item.quantity,
+          price: item.product.price,
+        })),
+        product: cart.map((item) => `${item.product.name} (${item.size})`).join(', '),
+        quantity: cart.reduce((count, item) => count + item.quantity, 0),
+        shipping,
+        total: finalTotal,
+      };
+
+      const razorpayOrder = await createRazorpayOrder({ amount: Number(finalTotal.toFixed(2)) });
+
+      const razorpay = new window.Razorpay({
+        key: keyId,
+        amount: razorpayOrder.data.amount,
+        currency: razorpayOrder.data.currency,
+        name: 'Perfume Store',
+        description: 'Online Order Payment',
+        order_id: razorpayOrder.data.id,
+        handler: async function (response) {
+          try {
+            const verifyPayment = httpsCallable(functions, 'verifyRazorpayPayment');
+            const verification = await verifyPayment({
+              paymentData: {
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              },
+              orderData: {
+                ...orderData,
+                userId: user?.uid,
+                userEmail: orderData.email || user?.email || '',
+                paymentMethod: 'Razorpay Payment',
+                status: 'Paid',
+              },
+            });
+
+            setOrderId(verification.data.id);
+            setPaymentInitiated(true);
+            setShowOrderDetails(false);
+            setCheckedOut(true);
+            setEmailSent(true);
+            clearCart();
+          } catch (error) {
+            setPaymentInitiated(false);
+            setOrderError('Payment verification failed. Please contact support.');
+          }
+        },
+        prefill: {
+          name: orderDetails.name,
+          email: orderDetails.email || user?.email || '',
+          contact: orderDetails.phone,
+        },
+        notes: {
+          address: orderDetails.address,
+          city: orderDetails.city,
+        },
+        theme: {
+          color: '#112D4E',
+        },
+        modal: {
+          ondismiss: () => {
+            setPaymentInitiated(false);
+            setOrderError('Payment cancelled. Please try again.');
+          },
+        },
+      });
+
+      razorpay.open();
+    } catch (error) {
+      setPaymentInitiated(false);
+      setOrderError(error.message || 'Unable to start online payment. Please try again.');
+    } finally {
+      setPaymentProcessing(false);
+    }
   };
 
   const placeOrder = async (event) => {
@@ -61,8 +172,14 @@ export default function Cart() {
     setOrderError('');
 
     try {
-      if (orderDetails.paymentMethod === 'Online Payment (Razorpay)' && !paymentInitiated) {
-        throw new Error('Please complete the Razorpay payment first, then place your order.');
+      if (orderDetails.paymentMethod === 'Online Payment (Razorpay)') {
+        if (!paymentInitiated || !orderId) {
+          throw new Error('Please complete the Razorpay payment first, then place your order.');
+        }
+        setShowOrderDetails(false);
+        setCheckedOut(true);
+        clearCart();
+        return;
       }
 
       const orderData = {
@@ -444,9 +561,10 @@ export default function Cart() {
                   <button
                     type="button"
                     onClick={handlePayment}
-                    className="rounded-full bg-[#3399cc] px-6 py-3 text-xs uppercase tracking-wider text-white transition-colors hover:bg-[#287fa8]"
+                    disabled={paymentProcessing}
+                    className="rounded-full bg-[#3399cc] px-6 py-3 text-xs uppercase tracking-wider text-white transition-colors hover:bg-[#287fa8] disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {paymentInitiated ? 'Pay Again' : `Pay Now · ₹${finalTotal.toFixed(2)}`}
+                    {paymentProcessing ? 'Processing...' : paymentInitiated ? 'Pay Again' : `Pay Now · ₹${finalTotal.toFixed(2)}`}
                   </button>
                 )}
               </div>

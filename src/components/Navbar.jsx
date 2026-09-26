@@ -45,9 +45,13 @@ export default function Navbar() {
         {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
           <div className="w-8 h-8 rounded-full border border-[black] flex items-center justify-center bg-[#F9F7F7] group-hover:bg-[white] transition-all duration-300 shadow-sm">
-            <img src="Masculity1.jpg" alt="MASCULITY Logo" className="w-full h-full object-cover rounded-full" />
+            <img src="/Masculity1.jpg" alt="MASCULITY Logo" className="w-full h-full object-cover rounded-full" />
           </div>
-          <span className="font-serif text-2xl tracking-[0.25em] font-bold text-[white] group-hover:text-[white] transition-colors">
+          <span className="font-serif text-2xl tracking-[0.25em] font-bold 
+    transition-colors duration-300
+    text-black 
+    dark:text-white
+    group-hover:text-[#d4af37]">
             MASCULINITY
           </span>
         </Link>

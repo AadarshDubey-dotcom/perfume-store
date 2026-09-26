@@ -11,7 +11,7 @@ export default function Footer() {
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full border border-[#3F72AF] flex items-center justify-center bg-[#112D4E] shadow-md">
-                <img src="Masculity.png" alt="MASCULITY Logo" className="w-full h-full object-cover rounded-full" />
+                <img src="/Masculity1.jpg" alt="MASCULITY Logo" className="w-full h-full object-cover rounded-full" />
               </div>
               <span className="font-serif text-2xl tracking-[0.2em] font-semibold text-[black]">
                 MASCULITY
